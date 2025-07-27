@@ -148,8 +148,7 @@ public class RdpContext extends Structure {
     }
 
     public RdpGdi getGdi() {
-        int gdiOffset = fieldOffset("gdi");
-        Pointer gdiPointer = getPointer().getPointer(gdiOffset);
+        Pointer gdiPointer = (Pointer) readField("gdi");
         if (gdiPointer == Pointer.NULL) {
             return null;
         }
