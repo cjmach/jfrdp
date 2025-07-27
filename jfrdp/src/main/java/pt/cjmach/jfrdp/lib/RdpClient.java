@@ -129,7 +129,10 @@ public class RdpClient {
         return freeRdp;
     }
 
-    public int start() {
-        return freerdp_client_start(context.getPointer());
+    public void start() throws RdpException {
+        int result = freerdp_client_start(context.getPointer());
+        if (result != 0) {
+            throw new RdpException(context);
+        }
     }
 }

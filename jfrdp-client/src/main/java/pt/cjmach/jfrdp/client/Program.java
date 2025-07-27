@@ -26,6 +26,7 @@ import javax.swing.JMenu;
 import javax.swing.JMenuBar;
 import javax.swing.JOptionPane;
 import javax.swing.SwingUtilities;
+import pt.cjmach.jfrdp.lib.RdpException;
 import pt.cjmach.jfrdp.lib.RdpSettings;
 import pt.cjmach.jfrdp.lib.SettingsKeys;
 import pt.cjmach.jfrdp.ui.RdpDisplay;
@@ -57,7 +58,12 @@ public class Program {
                         settings.setString(SettingsKeys.String.DOMAIN, connectDialog.getDomain());
                         settings.setString(SettingsKeys.String.USERNAME, connectDialog.getUser());
                         settings.setString(SettingsKeys.String.PASSWORD, connectDialog.getPassword());
-                        displayArea.connect();
+                        try {
+                            displayArea.connect();
+                        } catch (RdpException ex) {
+                            JOptionPane.showMessageDialog(frame, ex.getMessage(), 
+                                    "Error!", JOptionPane.ERROR_MESSAGE);
+                        }
                     }
                 }
             });
@@ -70,7 +76,7 @@ public class Program {
             });
 
             menuBar.add(fileMenu);
-            
+
             frame.addWindowListener(new WindowAdapter() {
                 @Override
                 public void windowClosing(WindowEvent e) {

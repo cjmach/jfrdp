@@ -51,6 +51,7 @@ import pt.cjmach.jfrdp.lib.GdiWnd;
 import pt.cjmach.jfrdp.lib.PixelFormat;
 import pt.cjmach.jfrdp.lib.RdpClient;
 import pt.cjmach.jfrdp.lib.RdpContext;
+import pt.cjmach.jfrdp.lib.RdpException;
 import pt.cjmach.jfrdp.lib.RdpGdi;
 import pt.cjmach.jfrdp.lib.RdpInput;
 import pt.cjmach.jfrdp.lib.RdpPointer;
@@ -267,8 +268,8 @@ public class RdpDisplay extends JPanel {
         return client.getContext().abortConnect();
     }
 
-    public int connect() {
-        return client.start();
+    public void connect() throws RdpException {
+        client.start();
     }
 
     public boolean isDesktopResizeEnabled() {
