@@ -41,11 +41,11 @@ public class Program {
         SwingUtilities.invokeLater(() -> {
             final JFrame frame = new JFrame("RDP Client");
             JMenuBar menuBar = new JMenuBar();
-            RdpDisplay displayArea = new RdpDisplay();
+            final RdpDisplay displayArea = new RdpDisplay();
 
             frame.setLayout(new BorderLayout());
             frame.add(displayArea, BorderLayout.CENTER);
-
+            
             JMenu fileMenu = new JMenu("File");
             fileMenu.add(new AbstractAction("Connect...") {
                 @Override
@@ -61,7 +61,7 @@ public class Program {
                         try {
                             displayArea.connect();
                         } catch (RdpException ex) {
-                            JOptionPane.showMessageDialog(frame, ex.getMessage(), 
+                            JOptionPane.showMessageDialog(frame, ex.getMessage(),
                                     "Error!", JOptionPane.ERROR_MESSAGE);
                         }
                     }
