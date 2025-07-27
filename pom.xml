@@ -3,7 +3,7 @@
     <modelVersion>4.0.0</modelVersion>
     <groupId>pt.cjmach.jfrdp</groupId>
     <artifactId>jfrdp-parent</artifactId>
-    <version>0.1.0-SNAPSHOT</version>
+    <version>0.1.0</version>
     <packaging>pom</packaging>
     <properties>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
@@ -18,7 +18,7 @@
     
     <scm>
         <developerConnection>scm:git:git@github.com:cjmach/jfrdp.git</developerConnection>
-        <tag>HEAD</tag>
+        <tag>v0.1.0</tag>
     </scm>
     
     <distributionManagement>
