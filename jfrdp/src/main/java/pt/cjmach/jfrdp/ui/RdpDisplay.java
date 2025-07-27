@@ -66,11 +66,12 @@ public class RdpDisplay extends JPanel {
     private BufferedImage surface;
     private int surfaceFormat;
     private int surfaceNumPixelComponents;
-    private boolean scaling = false;
-    private double scale = 1.0;
+    // TODO: Add support for scaling.
+    private final boolean scaling = false;
+    private final double scale = 1.0;
     private boolean connected;
-    private double offsetX = 0.0;
-    private double offsetY = 0.0;
+    private final double offsetX = 0.0;
+    private final double offsetY = 0.0;
 
     private RdpPointer pointer;
     private final Map<Pointer, Cursor> cachedCursors;
