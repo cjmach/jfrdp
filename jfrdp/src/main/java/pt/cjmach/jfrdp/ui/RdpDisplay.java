@@ -22,16 +22,9 @@ import java.awt.Dimension;
 import java.awt.Graphics;
 import java.awt.Point;
 import java.awt.Toolkit;
-import java.awt.event.ComponentAdapter;
 import java.awt.event.ComponentEvent;
-import java.awt.event.ComponentListener;
-import java.awt.event.FocusAdapter;
-import java.awt.event.FocusEvent;
-import java.awt.event.KeyAdapter;
 import java.awt.event.KeyEvent;
-import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
-import java.awt.event.MouseMotionAdapter;
 import java.awt.event.MouseWheelEvent;
 import java.awt.image.BufferedImage;
 import java.awt.image.DataBuffer;
@@ -93,7 +86,7 @@ public class RdpDisplay extends JPanel {
     private pPointerSetDefault pointerSetDefault;
     private pPointerSetNull pointerSetNull;
     
-    private ComponentListener parentComponentListener;
+    private RdpDisplayEventListener eventListener;
 
     public RdpDisplay() {
         this(createClient());
@@ -123,54 +116,6 @@ public class RdpDisplay extends JPanel {
         setFocusable(true);
         setFocusTraversalKeysEnabled(false);
         setOpaque(true);
-
-        addFocusListener(new FocusAdapter() {
-            @Override
-            public void focusGained(FocusEvent fe) {
-                onEnter();
-            }
-        });
-        addKeyListener(new KeyAdapter() {
-            @Override
-            public void keyPressed(KeyEvent ke) {
-                onKeyPressed(ke);
-            }
-
-            @Override
-            public void keyReleased(KeyEvent ke) {
-                onKeyReleased(ke);
-            }
-
-            @Override
-            public void keyTyped(KeyEvent e) {
-                onKeyTyped(e);
-            }
-        });
-        addMouseListener(new MouseAdapter() {
-            @Override
-            public void mousePressed(MouseEvent me) {
-                onMouseButtonEvent(me, true);
-            }
-
-            @Override
-            public void mouseReleased(MouseEvent me) {
-                onMouseButtonEvent(me, false);
-            }
-        });
-        addMouseMotionListener(new MouseMotionAdapter() {
-            @Override
-            public void mouseMoved(MouseEvent me) {
-                onMouseEvent(RdpInput.MOUSE_MOVE, me.getX(), me.getY());
-            }
-
-            @Override
-            public void mouseDragged(MouseEvent me) {
-                onMouseEvent(RdpInput.MOUSE_MOVE, me.getX(), me.getY());
-            }
-        });
-        addMouseWheelListener((MouseWheelEvent mwe) -> {
-            onMouseScroll(mwe);
-        });
 
         cachedCursors = new HashMap<>();
     }
@@ -545,8 +490,13 @@ public class RdpDisplay extends JPanel {
         if (!freeRdp.gdiInit(colorFormat)) {
             return false;
         }
-        parentComponentListener = new ParentComponentListener();
-        getParent().addComponentListener(parentComponentListener);
+        eventListener = new RdpDisplayEventListener(this);
+        getParent().addComponentListener(eventListener);
+        addFocusListener(eventListener);
+        addKeyListener(eventListener);
+        addMouseListener(eventListener);
+        addMouseMotionListener(eventListener);
+        addMouseWheelListener(eventListener);
 
         RdpContext context = freeRdp.getContext();
         RdpUpdate update = context.getUpdate();
@@ -581,8 +531,14 @@ public class RdpDisplay extends JPanel {
         connected = false;
 
         freeRdp.gdiFree();
-        getParent().removeComponentListener(parentComponentListener);
-        parentComponentListener = null;
+        
+        getParent().removeComponentListener(eventListener);
+        removeFocusListener(eventListener);
+        removeKeyListener(eventListener);
+        removeMouseListener(eventListener);
+        removeMouseMotionListener(eventListener);
+        removeMouseWheelListener(eventListener);
+        eventListener = null;
     }
 
     @Override
@@ -658,13 +614,5 @@ public class RdpDisplay extends JPanel {
             return Integer.parseInt(rawCode);
         }
         return 0;
-    }
-
-    class ParentComponentListener extends ComponentAdapter {
-
-        @Override
-        public void componentResized(ComponentEvent e) {
-            onParentComponentResized(e);
-        }
     }
 }
