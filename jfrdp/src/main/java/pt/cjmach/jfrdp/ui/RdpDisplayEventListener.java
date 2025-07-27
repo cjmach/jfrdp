@@ -61,7 +61,7 @@ class RdpDisplayEventListener implements ComponentListener, FocusListener, KeyLi
 
     @Override
     public void focusGained(FocusEvent e) {
-        display.onEnter();
+        display.onFocusGained();
     }
 
     @Override

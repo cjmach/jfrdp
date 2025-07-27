@@ -66,12 +66,14 @@ public class RdpDisplay extends JPanel {
     private BufferedImage surface;
     private int surfaceFormat;
     private int surfaceNumPixelComponents;
+    
     // TODO: Add support for scaling.
     private final boolean scaling = false;
     private final double scale = 1.0;
-    private boolean connected;
     private final double offsetX = 0.0;
     private final double offsetY = 0.0;
+    
+    private boolean connected;
 
     private RdpPointer pointer;
     private final Map<Pointer, Cursor> cachedCursors;
@@ -286,7 +288,7 @@ public class RdpDisplay extends JPanel {
         return true;
     }
 
-    boolean onEnter() {
+    boolean onFocusGained() {
         if (!connected) {
             return true;
         }
