@@ -24,8 +24,12 @@ import com.sun.jna.ptr.IntByReference;
 import java.util.Locale;
 
 import static pt.cjmach.jfrdp.lib.FreeRdpLibrary.*;
+import pt.cjmach.jfrdp.lib.types.SizeT;
 
 /**
+ * Defines the options for a given instance of RDP connection. This is built by 
+ * the client and given to the FreeRDP library to create the connection with the 
+ * expected options.
  *
  * @author cmachado
  */
@@ -42,19 +46,18 @@ public class FreeRdp extends Structure {
 
     private static final String CLIPRDR_SVC_CHANNEL_NAME = "cliprdr";
     private static final String DISP_DVC_CHANNEL_NAME = "Microsoft::Windows::RDS::DisplayControl";
-    private static final String DRDYNVC_SVC_CHANNEL_NAME = "drdynvc";
     private static final String ENCOMSP_SVC_CHANNEL_NAME = "encomsp";
-    private static final String GEOMETRY_CHANNEL_NAME = "geometry";
     private static final String GEOMETRY_DVC_CHANNEL_NAME = "Microsoft::Windows::RDS::Geometry::v08.01";
     private static final String RAIL_SVC_CHANNEL_NAME = "rail";
     private static final String RDPEI_DVC_CHANNEL_NAME = "Microsoft::Windows::RDS::Input";
-    private static final String RDPGFX_CHANNEL_NAME = "rdpgfx";
     private static final String RDPGFX_DVC_CHANNEL_NAME = "Microsoft::Windows::RDS::Graphics";
     private static final String TSMF_DVC_CHANNEL_NAME = "TSMF";
-    private static final String VIDEO_CHANNEL_NAME = "video";
     private static final String VIDEO_CONTROL_DVC_CHANNEL_NAME = "Microsoft::Windows::RDS::Video::Control::v08.01";
     private static final String VIDEO_DATA_DVC_CHANNEL_NAME = "Microsoft::Windows::RDS::Video::Data::v08.01";
 
+    /**
+     * Pointer to a {@link RdpContext} structure.
+     */
     public Pointer context;
     public Pointer pClientEntryPoints;
 
@@ -65,38 +68,142 @@ public class FreeRdp extends Structure {
 
     public long[] paddingB = new long[32 - 21];
 
-    public UInt ContextSize;
+    /**
+     * Specifies the size of the {@link #context} field.
+     */
+    public SizeT ContextSize;
+    
+    /**
+     * Callback for context allocation. Must be set to {@code null} if not needed.
+     */
     public pContextNew ContextNew;
+    
+    /**
+     * Callback for context deallocation. Must be set to {@code null} if not needed.
+     */
     public pContextFree ContextFree;
 
     public long[] paddingC = new long[47 - 35];
 
     public UInt ConnectionCallbackState;
+    
+    /**
+     * Callback for pre-connect operations. Must be set to {@code null} if not 
+     * needed.
+     */
     public pConnectCallback PreConnect;
+    
+    /**
+     * Callback for post-connect operations. Must be set to {@code null} if not 
+     * needed.
+     */
     public pConnectCallback PostConnect;
+    
+    /**
+     * Callback for authentication. It is used to get the username/password when 
+     * it was not provided at connection time.
+     */
     public pAuthenticate Authenticate;
 
     public long[] reserved = new long[2];
 
+    /**
+     * Callback for X509 certificate verification (PEM format).
+     */
     public pVerifyX509Certificate VerifyX509Certificate;
+    
+    /**
+     * Callback for logon error info, important for logon system messages with 
+     * RemoteApp.
+     */
     public pLogonErrorInfo LogonErrorInfo;
+    
+    /**
+     * Callback for cleaning up resources allocated by post connect callback. 
+     * This will be called before disconnecting and cleaning up the channels.
+     */
     public pPostDisconnect PostDisconnect;
+    
+    /**
+     * Callback for gateway authentication. It is used to get the 
+     * username/password when it was not provided at connection time.
+     */
     public pAuthenticate GatewayAuthenticate;
+    
+    /**
+     * Callback for gateway consent messages. It is used to present consent 
+     * messages to the user.
+     */
     public pPresentGatewayMessage PresentGatewayMessage;
+    
+    /**
+     * Callback for redirect operations. Must be set to NULL if not needed.
+     */
     public pConnectCallback Redirect;
+    
+    /**
+     * Callback for loading channel configuration. Might be called multiple 
+     * times when redirection occurs.
+     */
     public pConnectCallback LoadChannels;
+    
+    /**
+     * Callback for cleaning up resources allocated in {@link #PreConnect}. This 
+     * will be called after all instance related channels and threads have been 
+     * stopped.
+     */
     public pPostDisconnect PostFinalDisconnect;
 
     public long[] paddingD = new long[64 - 61];
-
+    
+    /**
+     * Callback for sending data to a channel. By default, it is set by by 
+     * {@code freerdp_new()}.
+     */
     public pSendChannelData SendChannelData;
+    
+    /**
+     * Callback for receiving data from a channel.
+     */
     public pReceiveChannelData ReceiveChannelData;
+    
+    /**
+     * Callback for certificate validation. Used to verify that an unknown 
+     * certificate is trusted.
+     */
     public pVerifyCertificateEx VerifyCertificateEx;
+    
+    /**
+     * Callback for changed certificate validation. Used when a certificate 
+     * differs from stored fingerprint.
+     */
     public pVerifyChangedCertificateEx VerifyChangedCertificateEx;
+    
+    /**
+     * Callback for sending RAW data to a channel.
+     */
     public pSendChannelPacket SendChannelPacket;
+    
+    /**
+     * Callback for authentication. It is used to get the username/password. 
+     * The {@code reason} argument tells why it was called.
+     */
     public pAuthenticateEx AuthenticateEx;
+    
+    /**
+     * Callback for choosing a smartcard for logon. Used when multiple 
+     * smartcards are available.
+     */
     public pChooseSmartcard ChooseSmartcard;
+    
+    /**
+     * Callback for obtaining an access token for AccessTokenType authentication.
+     */
     public Pointer GetAccessToken;
+    
+    /**
+     * Callback for displaying a dialog in case of something needs a retry.
+     */
     public Pointer RetryDialog;
 
     public long[] paddingE = new long[80 - 73];

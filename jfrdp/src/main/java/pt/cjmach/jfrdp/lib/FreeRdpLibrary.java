@@ -121,7 +121,7 @@ public class FreeRdpLibrary {
     // input.h
     //
     public static native boolean freerdp_input_send_keyboard_event_ex(Pointer input, boolean down, boolean repeat, UInt rdpScancode);
-    
+
     public static native boolean freerdp_input_send_unicode_keyboard_event(Pointer input, UInt flags, UShort code);
 
     public static native boolean freerdp_input_send_mouse_event(Pointer input, UShort flags, UShort x, UShort y);
@@ -129,14 +129,16 @@ public class FreeRdpLibrary {
     public static native boolean freerdp_input_send_extended_mouse_event(Pointer input, UShort flags, UShort x, UShort y);
 
     public static native boolean freerdp_input_send_focus_in_event(Pointer input, UShort toggleStates);
-    
+
     //
     // locale.h
     //
     public static native int freerdp_detect_keyboard_layout_from_system_locale(IntByReference keyboardLayoutId);
+
     // @since 3.14
     // public static native long freerdp_detect_keyboard_layout_from_locale(String localestr);
-    public static native long freerdp_get_locale_id_from_string(String locale);    
+    public static native long freerdp_get_locale_id_from_string(String locale);
+
     public static native UInt freerdp_get_keyboard_default_layout_for_locale(UInt locale);
 
     //
@@ -223,7 +225,7 @@ public class FreeRdpLibrary {
     public static native Pointer freerdp_supported_color_depths_string(UShort mask, Pointer buffer, SizeT size);
 
     public static native Pointer freerdp_settings_get_config_path();
-    
+
     //
     // codec/color.h
     // 
@@ -289,13 +291,37 @@ public class FreeRdpLibrary {
         void invoke(Pointer instance);
     }
 
+    /**
+     * Authentication callback function pointer definition.
+     */
     public static interface pAuthenticate extends Callback {
 
+        /**
+         *
+         * @param instance A pointer to the freerdp instance to work on.
+         * @param username A pointer to the username string.
+         * @param password A pointer to the password string.
+         * @param domain A pointer to the domain string.
+         * @return {@code false} no valid credentials supplied, continue
+         * without, or {@code true} valid credentials should be available.
+         */
         boolean invoke(Pointer instance, PointerByReference username, PointerByReference password, PointerByReference domain);
     }
 
+    /**
+     * Extended authentication callback function pointer definition.
+     */
     public static interface pAuthenticateEx extends Callback {
 
+        /**
+         * 
+         * @param instance A pointer to the freerdp instance to work on.
+         * @param username A pointer to the username string.
+         * @param password A pointer to the password string.
+         * @param domain A pointer to the domain string.
+         * @param reason The {@link RdpAuthReason} reason the callback was called.
+         * @return {@code false} to abort the connection, {@code true} otherwise.
+         */
         boolean invoke(Pointer instance, PointerByReference username, PointerByReference password, PointerByReference domain, int reason);
     }
 
@@ -304,42 +330,110 @@ public class FreeRdpLibrary {
         boolean invoke(Pointer instance, Pointer certList, UInt count, IntByReference choice, boolean gateway);
     }
 
-    public enum AccessTokenType {
-        Aad, /**
-         * oauth2 access token for RDS AAD authentication
-         */
-        Avd
-        /**
-         * oauth2 access token for Azure Virtual Desktop
-         */
+    /**
+     * A function to be implemented by a client. It is called whenever the 
+     * connection requires an access token.
+     */
+    public static interface pGetAccessToken extends Callback {
+        // varargs not supported by JNA.
+        // boolean invoke(Pointer instance, AccessTokenType tokenType, Pointer token, SizeT count, ...);
     }
 
-    // [UnmanagedFunctionPointer(CallingConvention.Cdecl)]
-    // [return: MarshalAs(UnmanagedType.Bool)]
-    // internal delegate bool pGetAccessToken(Pointer instance, AccessTokenType tokenType, Pointer token, UPointer count, ...);
-    // [UnmanagedFunctionPointer(CallingConvention.Cdecl)]
-    // [return: MarshalAs(UnmanagedType.Bool)]
-    // internal delegate bool pGetCommonAccessToken(Pointer context, AccessTokenType tokenType, Pointer token, UPointer count, ...);
-    public static interface pRetryDialog extends Callback {
+    /**
+     * The function is called whenever the connection requires an access token. 
+     * It differs from \ref pGetAccessToken and is not meant to be implemented 
+     * by a client directly.
+     */
+    public static interface pGetCommonAccessToken extends Callback {
+        // varargs not supported by JNA.
+        // boolean invoke(Pointer instance, AccessTokenType tokenType, Pointer token, SizeT count, ...);
+    }
 
+    /**
+     * Callback used to inform about a reconnection attempt.
+     */
+    public static interface pRetryDialog extends Callback {
+        /**
+         * 
+         * @param instance The freerdp instance the information is for.
+         * @param what A string describing the module attempting to retry an 
+         * operation.
+         * @param current The current reconnection attempt, the first attempt 
+         * will always have the value {@code 0}.
+         * @param userarg An optional custom argument.
+         * @return {@code -1} in case of failure (attempts exceeded, ...) or a
+         * delay in [ms] to wait before the next attempt.
+         */
         Pointer invoke(Pointer instance, String what, SizeT current, Pointer userarg);
     }
 
+    /**
+     * Callback used if user interaction is required to accept an unknown certificate.
+     */
     public static interface pVerifyCertificateEx extends Callback {
 
+        /**
+         * 
+         * @param instance A pointer to the freerdp instance to work on.
+         * @param host The hostname connecting to.
+         * @param port The port connecting to.
+         * @param commonName The certificate registered hostname.
+         * @param subject The common name of the certificate.
+         * @param issuer The issuer of the certificate.
+         * @param fingerprint The fingerprint of the certificate (old) or the 
+         * certificate in PEM format (VERIFY_CERT_FLAG_FP_IS_PEM set).
+         * @param flags Flags of type VERIFY_CERT_FLAG*
+         * @return {@code 1} to accept and store a certificate, {@code 2} to 
+         * accept a certificate only for this session, {@code 0} otherwise.
+         */
         UInt invoke(Pointer instance, String host, UShort port, String commonName,
                 String subject, String issuer, String fingerprint, UInt flags);
     }
 
+    /**
+     * Callback used if user interaction is required to accept a changed 
+     * certificate.
+     */
     public static interface pVerifyChangedCertificateEx extends Callback {
-
+        /**
+         * 
+         * @param instance A pointer to the freerdp instance to work on.
+         * @param host The hostname connecting to.
+         * @param port The port connecting to.
+         * @param commonName The certificate registered hostname.
+         * @param subject The common name of the new certificate.
+         * @param issuer The issuer of the new certificate.
+         * @param new_fingerprint The fingerprint of the new certificate (old) 
+         * or the certificate in (VERIFY_CERT_FLAG_FP_IS_PEM set)
+         * @param oldSubject The common name of the old certificate.
+         * @param oldIssuer The issuer of the old certificate.
+         * @param oldFingerprint The fingerprint of the old certificate (old) 
+         * or the certificate in PEM format (VERIFY_CERT_FLAG_FP_IS_PEM set).
+         * @param flags Flags of type VERIFY_CERT_FLAG*
+         * @return {@code 1} to accept and store a certificate, {@code 2} to 
+         * accept a certificate only for this session, {@code 0} otherwise.
+         */
         UInt invoke(Pointer instance, String host, UShort port, String commonName,
                 String subject, String issuer, String new_fingerprint, String oldSubject,
                 String oldIssuer, String oldFingerprint, UInt flags);
     }
 
+    /**
+     * Callback used if user interaction is required to accept a certificate.
+     */
     public static interface pVerifyX509Certificate extends Callback {
-
+        
+        /**
+         * 
+         * @param instance Pointer to the freerdp instance.
+         * @param data Pointer to certificate data (full chain) in PEM format.
+         * @param length The length of the certificate data.
+         * @param hostname The hostname connecting to.
+         * @param port The port connecting to.
+         * @param flags Flags of type VERIFY_CERT_FLAG*
+         * @return {@code 1} to accept and store a certificate, {@code 2} to 
+         * accept a certificate only for this session, {@code 0} otherwise.
+         */
         int invoke(Pointer instance, Pointer data, SizeT length, String hostname, UShort port, UInt flags);
     }
 
