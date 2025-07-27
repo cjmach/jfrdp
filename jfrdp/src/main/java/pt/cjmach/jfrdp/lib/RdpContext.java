@@ -22,6 +22,7 @@ import com.sun.jna.Native;
 import com.sun.jna.Pointer;
 import com.sun.jna.Structure;
 import com.sun.jna.Structure.FieldOrder;
+import java.nio.charset.StandardCharsets;
 import static pt.cjmach.jfrdp.lib.FreeRdpLibrary.*;
 
 /**
@@ -161,6 +162,25 @@ public class RdpContext extends Structure {
     public RdpInput getInput() {
         return inputObj;
     }
+    
+    public long getLastError() {
+        return freerdp_get_last_error(getPointer()).longValue();
+    }
+    
+    public String getLastErrorCategory() {
+        UInt lastError = freerdp_get_last_error(getPointer());
+        return getLastErrorCategory(lastError);
+    }
+    
+    public String getLastErrorName() {
+        UInt lastError = freerdp_get_last_error(getPointer());
+        return getLastErrorName(lastError);
+    }
+    
+    public String getLastErrorString() {
+        UInt lastError = freerdp_get_last_error(getPointer());
+        return getLastErrorString(lastError);
+    }
 
     @Override
     protected int getNativeAlignment(Class<?> type, Object value, boolean isFirstElement) {
@@ -195,6 +215,36 @@ public class RdpContext extends Structure {
 
     public boolean shallDisconnect() {
         return freerdp_shall_disconnect_context(getPointer());
+    }
+    
+    static String getLastErrorCategory(UInt errorCode) {
+        Pointer p = freerdp_get_last_error_category(errorCode);
+        return p.getString(0, StandardCharsets.US_ASCII.name());
+    }
+    
+    public static String getLastErrorCategory(long errorCode) {
+        UInt lastError = new UInt(errorCode);
+        return getLastErrorCategory(lastError);
+    }
+    
+    static String getLastErrorName(UInt errorCode) {
+        Pointer p = freerdp_get_last_error_name(errorCode);
+        return p.getString(0, StandardCharsets.US_ASCII.name());
+    }
+    
+    public static String getLastErrorName(long errorCode) {
+        UInt lastError = new UInt(errorCode);
+        return getLastErrorName(lastError);
+    }
+    
+    static String getLastErrorString(UInt errorCode) {
+        Pointer p = freerdp_get_last_error_string(errorCode);
+        return p.getString(0, StandardCharsets.US_ASCII.name());
+    }
+    
+    public static String getLastErrorString(long errorCode) {
+        UInt lastError = new UInt(errorCode);
+        return getLastErrorString(lastError);
     }
 
     public static class ByValue extends RdpContext implements Structure.ByValue {
