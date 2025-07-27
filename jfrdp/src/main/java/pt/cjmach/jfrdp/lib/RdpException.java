@@ -16,24 +16,35 @@
  */
 package pt.cjmach.jfrdp.lib;
 
-import com.sun.jna.Pointer;
-import com.sun.jna.Structure;
-import com.sun.jna.Structure.FieldOrder;
-
 /**
  *
  * @author cmachado
  */
-
-@FieldOrder({"handle", "custom", "DisplayControlCaps", "SendMonitorLayout"})
-public class DispClientContext extends Structure {
-    public Pointer handle;
-    public Pointer custom;
-    public FreeRdpClientLibrary.pcDispCaps DisplayControlCaps;
-    public FreeRdpClientLibrary.pcDispSendMonitorLayout SendMonitorLayout;
+public class RdpException extends Exception {
+    private final long errorCode;
+    private final String errorCategory;
+    private final String errorName;
     
-    public DispClientContext(Pointer context) {
-        super(context);
-        read();
+    public RdpException(RdpContext context) {
+        this(context.getLastError());
+    }
+    
+    public RdpException(long errorCode) {
+        super(RdpContext.getLastErrorString(errorCode));
+        this.errorCode = errorCode;
+        this.errorCategory = RdpContext.getLastErrorCategory(errorCode);
+        this.errorName = RdpContext.getLastErrorName(errorCode);
+    }
+
+    public String getErrorCategory() {
+        return errorCategory;
+    }
+    
+    public long getErrorCode() {
+        return errorCode;
+    }
+
+    public String getErrorName() {
+        return errorName;
     }
 }

@@ -16,24 +16,17 @@
  */
 package pt.cjmach.jfrdp.lib;
 
-import com.sun.jna.Pointer;
-import com.sun.jna.Structure;
-import com.sun.jna.Structure.FieldOrder;
-
 /**
  *
  * @author cmachado
  */
-
-@FieldOrder({"handle", "custom", "DisplayControlCaps", "SendMonitorLayout"})
-public class DispClientContext extends Structure {
-    public Pointer handle;
-    public Pointer custom;
-    public FreeRdpClientLibrary.pcDispCaps DisplayControlCaps;
-    public FreeRdpClientLibrary.pcDispSendMonitorLayout SendMonitorLayout;
-    
-    public DispClientContext(Pointer context) {
-        super(context);
-        read();
-    }
+public enum AccessTokenType {
+    /**
+     * oauth2 access token for RDS AAD authentication
+     */
+    AAD,
+    /**
+     * oauth2 access token for Azure Virtual Desktop
+     */
+    AVD
 }

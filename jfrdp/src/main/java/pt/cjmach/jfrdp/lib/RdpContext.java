@@ -1,6 +1,18 @@
 /*
- * Click nbfs://nbhost/SystemFileSystem/Templates/Licenses/license-default.txt to change this license
- * Click nbfs://nbhost/SystemFileSystem/Templates/Classes/Class.java to edit this template
+ * Licensed to the Apache Software Foundation (ASF) under one or more 
+ * contributor license agreements.  See the NOTICE file distributed with this 
+ * work for additional information regarding copyright ownership. The ASF 
+ * licenses this file to you under the Apache License, Version 2.0 (the
+ * "License"); you may not use this file except in compliance with the License.  
+ * You may obtain a copy of the License at
+ * 
+ *   https://www.apache.org/licenses/LICENSE-2.0
+ * 
+ * Unless required by applicable law or agreed to in writing, software 
+ * distributed under the License is distributed on an "AS IS" BASIS, WITHOUT 
+ * WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.  See the 
+ * License for the specific language governing permissions and limitations
+ * under the License.  
  */
 package pt.cjmach.jfrdp.lib;
 
@@ -10,11 +22,14 @@ import com.sun.jna.Native;
 import com.sun.jna.Pointer;
 import com.sun.jna.Structure;
 import com.sun.jna.Structure.FieldOrder;
+import java.nio.charset.StandardCharsets;
 import static pt.cjmach.jfrdp.lib.FreeRdpLibrary.*;
 
 /**
- *
- * @author mach
+ * Defines the context for a given instance of RDP connection. It is embedded in
+ * the freerdp structure.
+ * 
+ * @author cmachado
  */
 @FieldOrder({"instance", "peer", "ServerMode", "LastError", "paddingA", "argc",
     "argv", "pubSub", "channelErrorEvent", "channelErrorNum", "errorDescription",
@@ -22,15 +37,34 @@ import static pt.cjmach.jfrdp.lib.FreeRdpLibrary.*;
     "update", "settings", "metrics", "codecs", "autodetect", "paddingC1",
     "disconnectUltimatum", "paddingC", "dump", "log", "paddingD", "paddingE"})
 public class RdpContext extends Structure {
-
+    /**
+     * Pointer to a freerdp structure. This is a back-link to retrieve the 
+     * freerdp instance from the context.
+     */
     public Pointer instance;
+    
+    /**
+     * Pointer to the client peer. This field is used only on the server side.
+     */
     public Pointer peer;
+    
+    /**
+     * {@code true} when context is in server mode.
+     */
     public boolean ServerMode;
+    
     public UInt LastError;
     
     public long[] paddingA = new long[16 - 4];
     
+    /**
+     * Number of arguments given to the program at launch time.
+     */
     public int argc;
+    
+    /**
+     * List of arguments given to the program at launch time.
+     */
     public Pointer argv;
     
     public Pointer pubSub;
@@ -41,7 +75,18 @@ public class RdpContext extends Structure {
     
     public long[] paddingB = new long[32 - 22];
 
+    /**
+     * Pointer to a RdpRdp structure used to keep the connection's parameters.
+     * There is no need to specifically allocate/deallocate this.
+     */
     public Pointer rdp;
+    
+    /**
+     * Pointer to a {@link RdpGdi} structure used to keep the gdi settings. It 
+     * is allocated by {@link FreeRdp#gdiInit(pt.cjmach.jfrdp.lib.PixelFormat)} 
+     * and deallocated by {@link FreeRdp#gdiFree()}. It must be deallocated before 
+     * deallocating this {@code RdpContext} structure.
+     */
     public Pointer gdi;
     public Pointer rail;
     public Pointer cache;
@@ -104,8 +149,7 @@ public class RdpContext extends Structure {
     }
 
     public RdpGdi getGdi() {
-        int gdiOffset = fieldOffset("gdi");
-        Pointer gdiPointer = getPointer().getPointer(gdiOffset);
+        Pointer gdiPointer = (Pointer) readField("gdi");
         if (gdiPointer == Pointer.NULL) {
             return null;
         }
@@ -118,10 +162,29 @@ public class RdpContext extends Structure {
     public RdpInput getInput() {
         return inputObj;
     }
+    
+    public long getLastError() {
+        return freerdp_get_last_error(getPointer()).longValue();
+    }
+    
+    public String getLastErrorCategory() {
+        UInt lastError = freerdp_get_last_error(getPointer());
+        return getLastErrorCategory(lastError);
+    }
+    
+    public String getLastErrorName() {
+        UInt lastError = freerdp_get_last_error(getPointer());
+        return getLastErrorName(lastError);
+    }
+    
+    public String getLastErrorString() {
+        UInt lastError = freerdp_get_last_error(getPointer());
+        return getLastErrorString(lastError);
+    }
 
     @Override
     protected int getNativeAlignment(Class<?> type, Object value, boolean isFirstElement) {
-        return 8;
+        return Long.BYTES;
     }
 
     public PubSub getPubSub() {
@@ -152,6 +215,36 @@ public class RdpContext extends Structure {
 
     public boolean shallDisconnect() {
         return freerdp_shall_disconnect_context(getPointer());
+    }
+    
+    static String getLastErrorCategory(UInt errorCode) {
+        Pointer p = freerdp_get_last_error_category(errorCode);
+        return p.getString(0, StandardCharsets.US_ASCII.name());
+    }
+    
+    public static String getLastErrorCategory(long errorCode) {
+        UInt lastError = new UInt(errorCode);
+        return getLastErrorCategory(lastError);
+    }
+    
+    static String getLastErrorName(UInt errorCode) {
+        Pointer p = freerdp_get_last_error_name(errorCode);
+        return p.getString(0, StandardCharsets.US_ASCII.name());
+    }
+    
+    public static String getLastErrorName(long errorCode) {
+        UInt lastError = new UInt(errorCode);
+        return getLastErrorName(lastError);
+    }
+    
+    static String getLastErrorString(UInt errorCode) {
+        Pointer p = freerdp_get_last_error_string(errorCode);
+        return p.getString(0, StandardCharsets.US_ASCII.name());
+    }
+    
+    public static String getLastErrorString(long errorCode) {
+        UInt lastError = new UInt(errorCode);
+        return getLastErrorString(lastError);
     }
 
     public static class ByValue extends RdpContext implements Structure.ByValue {
