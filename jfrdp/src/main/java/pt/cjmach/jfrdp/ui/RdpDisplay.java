@@ -60,7 +60,7 @@ import pt.cjmach.jfrdp.lib.SettingsKeys;
 public class RdpDisplay extends JPanel {
 
     private static Pattern RAW_CODE_PATTERN = Pattern.compile(".+rawCode=(\\d+).+");
-    
+
     private final RdpClient client;
     private final FreeRdp freeRdp;
     private BufferedImage surface;
@@ -74,7 +74,7 @@ public class RdpDisplay extends JPanel {
 
     private RdpPointer pointer;
     private final Map<Pointer, Cursor> cachedCursors;
-    
+
     private final pConnectCallback postConnect;
     private final pPostDisconnect postDisconnect;
     private pBeginPaint beginPaint;
@@ -85,7 +85,7 @@ public class RdpDisplay extends JPanel {
     private pPointerSet pointerSet;
     private pPointerSetDefault pointerSetDefault;
     private pPointerSetNull pointerSetNull;
-    
+
     private RdpDisplayEventListener eventListener;
 
     public RdpDisplay() {
@@ -175,7 +175,7 @@ public class RdpDisplay extends JPanel {
             case KeyEvent.VK_UP:
             case KeyEvent.VK_WINDOWS:
                 return true;
-                
+
             default:
                 return false;
         }
@@ -215,6 +215,10 @@ public class RdpDisplay extends JPanel {
 
     public void connect() throws RdpException {
         client.start();
+    }
+
+    public boolean isConnected() {
+        return connected;
     }
 
     public boolean isDesktopResizeEnabled() {
@@ -531,7 +535,7 @@ public class RdpDisplay extends JPanel {
         connected = false;
 
         freeRdp.gdiFree();
-        
+
         getParent().removeComponentListener(eventListener);
         removeFocusListener(eventListener);
         removeKeyListener(eventListener);
@@ -539,18 +543,27 @@ public class RdpDisplay extends JPanel {
         removeMouseMotionListener(eventListener);
         removeMouseWheelListener(eventListener);
         eventListener = null;
+        
+        cachedCursors.clear();
+        
+        surface = null;
+        pointer = null;
+        
+        repaint();
     }
 
     @Override
     protected void paintComponent(Graphics g) {
         super.paintComponent(g);
-        RdpGdi gdi = freeRdp.getContext().getGdi();
-        if (connected && gdi != null) {
-            if (surface == null || gdi.getWidth() != surface.getWidth()
-                    || gdi.getWidth() != surface.getHeight()) {
-                createSurface();
+        if (connected) {
+            RdpGdi gdi = freeRdp.getContext().getGdi();
+            if (gdi != null) {
+                if (surface == null || gdi.getWidth() != surface.getWidth()
+                        || gdi.getWidth() != surface.getHeight()) {
+                    createSurface();
+                }
+                g.drawImage(surface, 0, 0, this);
             }
-            g.drawImage(surface, 0, 0, this);
         }
     }
 
@@ -585,7 +598,7 @@ public class RdpDisplay extends JPanel {
         settings.setBoolean(SettingsKeys.Bool.REDIRECT_HOME_DRIVE, true);
         settings.setBoolean(SettingsKeys.Bool.SUPPORT_GRAPHICS_PIPELINE, true);
         settings.setBoolean(SettingsKeys.Bool.SOFTWARE_GDI, true);
-        
+
         String buildConfig = FreeRdp.getBuildConfig();
         if (buildConfig.contains("WITH_GFX_H264=ON")) {
             settings.setBoolean(SettingsKeys.Bool.GFX_H264, true);
@@ -594,7 +607,7 @@ public class RdpDisplay extends JPanel {
             settings.setBoolean(SettingsKeys.Bool.GFX_H264, false);
             settings.setBoolean(SettingsKeys.Bool.GFX_AVC444, false);
         }
-        
+
         int keyboardLayout = FreeRdp.detectKeyboardLayout();
         if (keyboardLayout > 0) {
             settings.setUInt32(SettingsKeys.UInt32.KEYBOARD_LAYOUT, keyboardLayout);
