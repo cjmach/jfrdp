@@ -51,7 +51,12 @@ public class FreeRdpClientLibrary {
     public static native void freerdp_client_context_free(Pointer context);
 
     public static native Pointer freerdp_client_context_new(RdpClientEntryPoints pEntryPoints);
-
+    
+    /**
+     * 
+     * @param context
+     * @return {@code 0} if successful, non-zero otherwise.
+     */
     public static native int freerdp_client_start(Pointer context);
 
     public static native int freerdp_client_stop(Pointer context);
