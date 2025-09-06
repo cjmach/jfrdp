@@ -1,6 +1,13 @@
 #  jfrdp
 
-A RDP display component for Java Swing.
+A RDP display component for Java Swing. Main features are:
+- Provides a `RdpDisplay` component, derived from Java Swing `JPanel` class, that allows to connect to and interact with a RDP server.
+- Provides Java bindings to [FreeRDP](https://github.com/FreeRDP/FreeRDP) implemented using [JNA](https://github.com/java-native-access/jna).
+- Supports mouse and keyboard input.
+- Supports bidirectional clipboard.
+- Supports drive mapping.
+
+A Java client application is also available to test the component.
 
 # Requirements
 
